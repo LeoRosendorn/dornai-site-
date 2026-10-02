@@ -51,9 +51,11 @@ export async function onRequestPost({ request, env }: Context): Promise<Response
     }
   }
 
+  // Solo nombres de variables faltantes, nunca valores: sirve para diagnosticar sin ver los logs.
+  const missing = (["BREVO_API_KEY", "CONTACT_TO", "SENDER_EMAIL"] as const).filter((k) => !env[k]);
   if (!env.BREVO_API_KEY || !env.CONTACT_TO || !env.SENDER_EMAIL) {
-    console.error("contacto: faltan variables de Brevo");
-    return reply(502, { error: "SEND_FAILED" });
+    console.error("contacto: faltan variables", missing);
+    return reply(502, { error: "SEND_FAILED", reason: `MISSING_${missing.join("_")}` });
   }
 
   const sender = { name: "Dorn AI", email: env.SENDER_EMAIL };
@@ -64,7 +66,7 @@ export async function onRequestPost({ request, env }: Context): Promise<Response
     subject: `Nueva consulta: ${contact.nombre}${contact.empresa ? ` (${contact.empresa})` : ""}`,
     htmlContent: leadEmailHtml(contact),
   });
-  if (!lead) return reply(502, { error: "SEND_FAILED" });
+  if (!lead.ok) return reply(502, { error: "SEND_FAILED", reason: lead.reason });
 
   // La confirmación es un extra: si falla, la consulta igual llegó.
   await sendEmail(env.BREVO_API_KEY, {
@@ -85,11 +87,14 @@ async function sendEmail(apiKey: string, payload: Record<string, unknown>) {
       headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) console.error("Brevo", res.status, await res.text());
-    return res.ok;
+    if (res.ok) return { ok: true, reason: "" };
+    // El código de Brevo (ej. "unauthorized") ayuda a diagnosticar; el mensaje puede traer datos y queda solo en el log.
+    const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
+    console.error("Brevo", res.status, body.code, body.message);
+    return { ok: false, reason: `BREVO_${res.status}_${body.code ?? "unknown"}` };
   } catch (err) {
     console.error("Brevo", err);
-    return false;
+    return { ok: false, reason: "BREVO_NETWORK" };
   }
 }
 
