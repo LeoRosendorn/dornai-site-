@@ -1,0 +1,17 @@
+---
+import { SITE } from "../data/site";
+import Base from "../layouts/Base.astro";
+---
+
+<!-- Destino del formulario cuando se envía sin JavaScript. -->
+<Base title="Consulta recibida" description="Recibimos tu consulta.">
+  <section class="container-x max-w-2xl space-y-6 py-24">
+    <p class="eyebrow">Consulta recibida</p>
+    <h1 class="text-4xl font-bold">¡Gracias! Te respondemos en 24 hs hábiles</h1>
+    <p class="text-lg text-ink">Te mandamos una copia de tu consulta por email. Si querés avanzar más rápido, agendá el diagnóstico.</p>
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <a href={SITE.calUrl} target="_blank" rel="noopener" class="btn btn-primary">Agendar diagnóstico gratis</a>
+      <a href="/" class="btn btn-ghost">Volver al inicio</a>
+    </div>
+  </section>
+</Base>

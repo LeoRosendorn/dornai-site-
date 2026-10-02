@@ -1,0 +1,27 @@
+---
+/** Escudo de Dorn (rombo con flecha dentro de una mira) + "Dorn AI". */
+interface Props {
+  class?: string;
+  withText?: boolean;
+}
+const { class: className = "", withText = true } = Astro.props;
+---
+
+<span class={`inline-flex items-center gap-2.5 ${className}`}>
+  <svg viewBox="0 0 64 64" class="size-9 shrink-0" aria-hidden="true">
+    <circle cx="32" cy="32" r="29" fill="#0a1610" stroke="#3dffc0" stroke-opacity=".35" stroke-width="1.5"></circle>
+    <path d="M32 9 47 33 32 55 17 33Z" fill="none" stroke="#3dffc0" stroke-width="2.4" stroke-linejoin="round"></path>
+    <path d="M32 18 37 34 32 30.5 27 34Z" fill="#3dffc0"></path>
+    <circle cx="32" cy="9" r="2" fill="#3dffc0"></circle>
+    <circle cx="47" cy="33" r="2" fill="#3dffc0"></circle>
+    <circle cx="32" cy="55" r="2" fill="#3dffc0"></circle>
+    <circle cx="17" cy="33" r="2" fill="#3dffc0"></circle>
+  </svg>
+  {
+    withText && (
+      <span class="font-display text-lg font-bold tracking-tight text-paper">
+        Dorn <span class="text-signal">AI</span>
+      </span>
+    )
+  }
+</span>

@@ -1,0 +1,31 @@
+---
+import { SITE } from "../data/site";
+
+interface Props {
+  title?: string;
+  body?: string;
+}
+const {
+  title = "Contanos qué querés resolver",
+  body = "En 30 minutos vemos si la IA te sirve, por dónde empezar y cuánto costaría. Sin compromiso.",
+} = Astro.props;
+---
+
+<section class="container-x pb-24">
+  <div
+    data-reveal
+    class="relative overflow-hidden rounded-3xl border border-line-strong bg-surface px-6 py-12 sm:px-12 sm:py-14"
+  >
+    <div aria-hidden="true" class="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-signal/15 blur-3xl"></div>
+    <div class="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+      <div class="max-w-xl space-y-3">
+        <h2 class="text-3xl font-bold sm:text-4xl">{title}</h2>
+        <p class="text-lg text-ink">{body}</p>
+      </div>
+      <div class="flex flex-col gap-3 sm:flex-row md:flex-col lg:flex-row">
+        <a href={SITE.calUrl} target="_blank" rel="noopener" class="btn btn-primary">Agendar diagnóstico gratis</a>
+        <a href="/contacto" class="btn btn-ghost">Escribinos</a>
+      </div>
+    </div>
+  </div>
+</section>

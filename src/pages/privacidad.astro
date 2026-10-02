@@ -1,0 +1,57 @@
+---
+import { SITE } from "../data/site";
+import Base from "../layouts/Base.astro";
+
+const sections = [
+  {
+    title: "Qué datos recibimos",
+    body: [
+      "Solo los que nos mandás en el formulario de contacto: nombre, email, empresa (opcional), el servicio que te interesa y tu mensaje. Si agendás una llamada, Cal.com recibe los datos que cargues en la reserva.",
+    ],
+  },
+  {
+    title: "Para qué los usamos",
+    body: [
+      "Para responder tu consulta, preparar la propuesta y coordinar la reunión. No los vendemos, no los compartimos con fines comerciales y no te sumamos a listas de correo sin tu permiso.",
+    ],
+  },
+  {
+    title: "Quién los procesa",
+    body: [
+      "La web está alojada en Cloudflare. Los emails del formulario se envían con Brevo y llegan a la casilla de Dorn AI. La agenda funciona con Cal.com. Cada uno procesa los datos solo para prestar ese servicio.",
+    ],
+  },
+  {
+    title: "Cuánto tiempo los guardamos",
+    body: [
+      "Mientras dure la conversación comercial o el proyecto. Si no avanzamos, borramos la consulta cuando nos lo pidas.",
+    ],
+  },
+  {
+    title: "Tus derechos",
+    body: [
+      "Podés pedirnos ver, corregir o borrar tus datos en cualquier momento respondiendo cualquier email nuestro o escribiéndonos por el formulario de contacto. En Argentina, la Agencia de Acceso a la Información Pública es el organismo de control de la Ley 25.326.",
+    ],
+  },
+];
+---
+
+<Base title="Privacidad" description="Cómo trata Dorn AI los datos que nos mandás por el formulario de contacto.">
+  <article class="container-x max-w-3xl space-y-10 py-20">
+    <header class="space-y-3 border-b border-line pb-8">
+      <p class="eyebrow">Privacidad</p>
+      <h1 class="text-4xl font-bold">Cómo cuidamos tus datos</h1>
+      <p class="font-mono text-xs text-muted">Última actualización: octubre de 2026 · {SITE.name}</p>
+    </header>
+    {
+      sections.map((s) => (
+        <section class="space-y-3">
+          <h2 class="text-2xl font-bold">{s.title}</h2>
+          {s.body.map((p) => (
+            <p class="leading-relaxed text-ink">{p}</p>
+          ))}
+        </section>
+      ))
+    }
+  </article>
+</Base>

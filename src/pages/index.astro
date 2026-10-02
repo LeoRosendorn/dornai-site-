@@ -1,0 +1,288 @@
+---
+import { getCollection } from "astro:content";
+import CtaBand from "../components/CtaBand.astro";
+import Faq from "../components/Faq.astro";
+import ServiceIcon from "../components/ServiceIcon.astro";
+import { FAQ, INTEGRATIONS, SITE, STEPS } from "../data/site";
+import Base from "../layouts/Base.astro";
+
+const services = (await getCollection("servicios")).sort((a, b) => a.data.order - b.data.order);
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    name: SITE.name,
+    url: SITE.url,
+    description: SITE.description,
+    areaServed: "Latinoamérica",
+    address: { "@type": "PostalAddress", addressLocality: "Buenos Aires", addressCountry: "AR" },
+    founder: { "@type": "Person", name: SITE.founder },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Servicios de IA",
+      itemListElement: services.map((s) => ({
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: s.data.title, url: `${SITE.url}/servicios/${s.id}/` },
+      })),
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  },
+];
+
+const feed = [
+  { channel: "WhatsApp", text: "Consulta de precio y stock respondida", time: "4 s" },
+  { channel: "Voz", text: "Turno agendado para el jueves 10:30", time: "1 min" },
+  { channel: "Email", text: "Factura leída y cargada en el sistema", time: "12 s" },
+  { channel: "Equipo", text: "Política de devoluciones citada con fuente", time: "3 s" },
+];
+
+const why = [
+  {
+    title: "Probado antes de salir",
+    body: "Cada agente pasa por pruebas con casos reales de tu negocio antes de hablar con un cliente. Venimos del mundo de la calidad de software y se nota.",
+  },
+  {
+    title: "Precio fijo y por escrito",
+    body: "Sabés cuánto vas a pagar antes de empezar. Sin horas extra sorpresa ni letra chica.",
+  },
+  {
+    title: "Tus datos, bajo tu control",
+    body: "Accesos que vos administrás, servicios elegidos con criterio y documentación de qué dato va a dónde.",
+  },
+  {
+    title: "Resultados que se miden",
+    body: "Definimos juntos qué medir desde el día uno: tiempo ahorrado, consultas resueltas, turnos o ventas.",
+  },
+];
+
+const bars = [5, 9, 14, 8, 18, 11, 6, 15, 20, 9, 13, 7, 17, 10, 5, 12, 16, 8, 11, 6];
+---
+
+<Base jsonLd={jsonLd}>
+  <!-- Hero -->
+  <section class="grid-bg relative overflow-hidden border-b border-line">
+    <div aria-hidden="true" class="pointer-events-none absolute -top-40 left-1/2 h-[32rem] w-[60rem] -translate-x-1/2 rounded-full bg-signal/10 blur-3xl"></div>
+    <div class="container-x relative grid items-center gap-14 py-20 sm:py-28 lg:grid-cols-[1.15fr_1fr]">
+      <div class="space-y-7">
+        <p class="eyebrow">Agencia de IA · Latinoamérica</p>
+        <h1 class="text-4xl leading-[1.05] font-bold sm:text-6xl">
+          Agentes de IA que atienden, venden y <span class="text-signal">trabajan por tu equipo</span>
+        </h1>
+        <p class="max-w-xl text-lg leading-relaxed text-ink sm:text-xl">
+          Diseñamos, construimos y operamos agentes de IA y automatizaciones a medida para empresas de LATAM. Precio fijo,
+          primeros resultados en días.
+        </p>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href={SITE.calUrl} target="_blank" rel="noopener" class="btn btn-primary">Agendar diagnóstico gratis</a>
+          <a href="#servicios" class="btn btn-ghost">Ver servicios</a>
+        </div>
+        <p class="font-mono text-xs text-muted">30 min por videollamada · Sin costo · Sin compromiso</p>
+      </div>
+
+      <figure class="card p-2 shadow-2xl shadow-black/50" aria-label="Ejemplo de lo que hacen los agentes en un día">
+        <div class="flex items-center justify-between border-b border-line px-4 py-3">
+          <span class="flex items-center gap-2 font-mono text-xs text-paper">
+            <span class="relative flex size-2.5">
+              <span class="absolute inline-flex size-full animate-ping rounded-full bg-signal opacity-60 motion-reduce:animate-none"></span>
+              <span class="relative inline-flex size-2.5 rounded-full bg-signal"></span>
+            </span>
+            Agentes en línea
+          </span>
+          <span class="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[10px] text-muted uppercase">Ejemplo</span>
+        </div>
+        <ul class="divide-y divide-line">
+          {
+            feed.map((f) => (
+              <li class="flex items-center gap-3 px-4 py-3.5">
+                <span class="w-20 shrink-0 font-mono text-xs text-signal">{f.channel}</span>
+                <span class="min-w-0 flex-1 text-sm text-paper">{f.text}</span>
+                <span class="shrink-0 font-mono text-xs text-muted">{f.time}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </figure>
+    </div>
+  </section>
+
+  <!-- Servicios -->
+  <section id="servicios" class="container-x py-24">
+    <div data-reveal class="mb-12 max-w-2xl space-y-4">
+      <p class="eyebrow">Servicios</p>
+      <h2 class="text-3xl font-bold sm:text-5xl">Lo que una agencia de IA hace por tu empresa</h2>
+      <p class="text-lg text-ink">
+        Cada proyecto es a medida: empezamos por el problema de tu negocio y elegimos la tecnología después.
+      </p>
+    </div>
+    <ul class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {
+        services.map((s) => (
+          <li data-reveal>
+            <a
+              href={`/servicios/${s.id}/`}
+              class="card group flex h-full flex-col gap-4 p-6 transition-colors hover:border-line-strong"
+            >
+              <span class="flex size-12 items-center justify-center rounded-xl bg-signal/10 text-signal">
+                <ServiceIcon name={s.data.icon} />
+              </span>
+              <h3 class="text-xl font-semibold">{s.data.title}</h3>
+              <p class="flex-1 leading-relaxed text-ink">{s.data.short}</p>
+              <span class="font-mono text-xs text-signal">
+                Ver servicio <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- Cómo trabajamos -->
+  <section id="como-trabajamos" class="border-y border-line bg-surface">
+    <div class="container-x py-24">
+      <div data-reveal class="mb-12 max-w-2xl space-y-4">
+        <p class="eyebrow">Cómo trabajamos</p>
+        <h2 class="text-3xl font-bold sm:text-5xl">Del problema a la solución, en 4 pasos</h2>
+      </div>
+      <ol class="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        {
+          STEPS.map((step, i) => (
+            <li data-reveal class="card flex flex-col gap-3 p-6">
+              <span class="font-mono text-sm text-signal">0{i + 1}</span>
+              <h3 class="text-xl font-semibold">{step.title}</h3>
+              <p class="flex-1 leading-relaxed text-ink">{step.body}</p>
+              <span class="w-fit rounded-full border border-line-strong px-3 py-1 font-mono text-[11px] text-muted">
+                {step.tag}
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Demos -->
+  <section id="demos" class="container-x py-24">
+    <div data-reveal class="mb-12 max-w-2xl space-y-4">
+      <p class="eyebrow">Demos</p>
+      <h2 class="text-3xl font-bold sm:text-5xl">Así se ve en el día a día</h2>
+      <p class="text-lg text-ink">
+        Ejemplos ilustrativos de cómo trabajan nuestros agentes. En el diagnóstico te mostramos una demo con un caso de tu
+        negocio.
+      </p>
+    </div>
+
+    <div class="grid gap-5 lg:grid-cols-3">
+      <article data-reveal class="card flex flex-col p-5">
+        <header class="mb-4 flex items-center justify-between gap-3">
+          <h3 class="text-lg font-semibold">Agente de ventas en WhatsApp</h3>
+          <span class="font-mono text-[10px] text-muted uppercase">Ejemplo</span>
+        </header>
+        <div class="flex flex-1 flex-col gap-2.5 rounded-xl bg-bg p-4 text-sm">
+          <p class="max-w-[85%] self-end rounded-2xl rounded-br-sm bg-surface-2 px-3.5 py-2 text-paper">
+            Hola! Tienen la zapatilla running en 42? Hacen envíos a Rosario?
+          </p>
+          <p class="max-w-[85%] rounded-2xl rounded-bl-sm bg-signal/15 px-3.5 py-2 text-paper">
+            ¡Hola! Sí, hay 42 en negro y en gris. El envío a Rosario tarda 48 hs y es gratis desde $80.000. ¿Te paso el link
+            para comprar?
+          </p>
+          <p class="max-w-[85%] self-end rounded-2xl rounded-br-sm bg-surface-2 px-3.5 py-2 text-paper">Dale, la negra</p>
+          <p class="max-w-[85%] rounded-2xl rounded-bl-sm bg-signal/15 px-3.5 py-2 text-paper">
+            Listo, acá está el link con la talla cargada. Si preferís, te contacta alguien del equipo.
+          </p>
+        </div>
+        <p class="mt-4 font-mono text-xs text-muted">Consulta resuelta · Lead registrado en el CRM</p>
+      </article>
+
+      <article data-reveal class="card flex flex-col p-5">
+        <header class="mb-4 flex items-center justify-between gap-3">
+          <h3 class="text-lg font-semibold">Agente de voz para turnos</h3>
+          <span class="font-mono text-[10px] text-muted uppercase">Ejemplo</span>
+        </header>
+        <div class="flex flex-1 flex-col gap-3 rounded-xl bg-bg p-4 text-sm">
+          <div aria-hidden="true" class="flex h-10 items-center gap-1">
+            {bars.map((h) => <span class="w-1.5 rounded-full bg-signal/70" style={`height:${h * 2}px`} />)}
+          </div>
+          <p class="text-paper"><span class="font-mono text-xs text-signal">Agente</span> · Clínica Norte, buenas tardes. ¿En qué te ayudo?</p>
+          <p class="text-ink"><span class="font-mono text-xs text-muted">Paciente</span> · Quiero un turno con traumatología esta semana.</p>
+          <p class="text-paper">
+            <span class="font-mono text-xs text-signal">Agente</span> · Tengo el jueves a las 10:30 o el viernes a las 17. ¿Cuál te queda mejor?
+          </p>
+        </div>
+        <p class="mt-4 font-mono text-xs text-muted">Turno agendado · Recordatorio programado</p>
+      </article>
+
+      <article data-reveal class="card flex flex-col p-5">
+        <header class="mb-4 flex items-center justify-between gap-3">
+          <h3 class="text-lg font-semibold">Asistente interno con fuentes</h3>
+          <span class="font-mono text-[10px] text-muted uppercase">Ejemplo</span>
+        </header>
+        <div class="flex flex-1 flex-col gap-3 rounded-xl bg-bg p-4 text-sm">
+          <p class="rounded-lg border border-line px-3 py-2 text-paper">¿Cuántos días tiene un cliente para devolver un producto?</p>
+          <p class="leading-relaxed text-paper">
+            Tiene <strong class="text-signal">30 días corridos</strong> desde la entrega, con el producto sin uso y en su caja. Si la
+            compra fue online, puede pedir la devolución desde su cuenta.
+          </p>
+          <p class="mt-auto flex items-center gap-2 font-mono text-xs text-muted">
+            <span aria-hidden="true">↳</span> Fuente: Política de devoluciones v3.pdf · pág. 2
+          </p>
+        </div>
+        <p class="mt-4 font-mono text-xs text-muted">Respuesta en segundos · Verificable</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Por qué Dorn AI -->
+  <section class="border-y border-line bg-surface">
+    <div class="container-x grid gap-12 py-24 lg:grid-cols-[1fr_1.2fr]">
+      <div data-reveal class="space-y-5">
+        <p class="eyebrow">Por qué Dorn AI</p>
+        <h2 class="text-3xl font-bold sm:text-5xl">IA aplicada con criterio de ingeniería</h2>
+        <p class="text-lg leading-relaxed text-ink">
+          Dorn AI nace en Buenos Aires de la mano de {SITE.founder}, con experiencia en calidad y pruebas de software. Por eso
+          cada agente se diseña, se prueba y se mide como un producto, no como un experimento.
+        </p>
+      </div>
+      <ul class="grid gap-5 sm:grid-cols-2">
+        {
+          why.map((w) => (
+            <li data-reveal class="card space-y-2 p-6">
+              <h3 class="text-lg font-semibold">{w.title}</h3>
+              <p class="leading-relaxed text-ink">{w.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Integraciones -->
+  <section class="container-x py-24">
+    <div data-reveal class="mb-10 max-w-2xl space-y-4">
+      <p class="eyebrow">Integraciones</p>
+      <h2 class="text-3xl font-bold sm:text-4xl">Se conecta con lo que ya usás</h2>
+      <p class="text-lg text-ink">Y si tu sistema no está en la lista, lo vemos en el diagnóstico.</p>
+    </div>
+    <ul data-reveal class="flex flex-wrap gap-2.5">
+      {INTEGRATIONS.map((i) => <li class="rounded-full border border-line-strong bg-surface px-4 py-2 text-sm text-paper">{i}</li>)}
+    </ul>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="container-x pb-24">
+    <div class="mx-auto max-w-3xl space-y-8">
+      <div data-reveal class="space-y-4">
+        <p class="eyebrow">Preguntas frecuentes</p>
+        <h2 class="text-3xl font-bold sm:text-4xl">Lo que nos preguntan antes de empezar</h2>
+      </div>
+      <Faq items={FAQ} />
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>

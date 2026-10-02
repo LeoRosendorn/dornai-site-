@@ -1,0 +1,50 @@
+---
+import { NAV, SITE } from "../data/site";
+import Logo from "./Logo.astro";
+---
+
+<header class="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
+  <div class="container-x flex h-16 items-center justify-between gap-4">
+    <a href="/" aria-label="Dorn AI, inicio">
+      <Logo />
+    </a>
+
+    <nav aria-label="Principal" class="hidden items-center gap-7 text-sm md:flex">
+      {NAV.map((item) => <a href={item.href} class="text-ink transition-colors hover:text-signal">{item.label}</a>)}
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a href="/contacto" class="btn btn-primary hidden min-h-10 px-5 text-sm sm:inline-flex">Agendar diagnóstico</a>
+
+      <details class="group relative md:hidden">
+        <summary
+          class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full border border-line-strong text-paper [&::-webkit-details-marker]:hidden"
+          aria-label="Abrir menú"
+        >
+          <svg viewBox="0 0 24 24" class="size-5 group-open:hidden" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+          </svg>
+          <svg viewBox="0 0 24 24" class="hidden size-5 group-open:block" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+          </svg>
+        </summary>
+        <nav
+          aria-label="Menú móvil"
+          class="absolute right-0 mt-3 flex w-64 flex-col gap-1 rounded-2xl border border-line-strong bg-surface p-3 shadow-2xl"
+        >
+          {
+            NAV.map((item) => (
+              <a href={item.href} class="rounded-lg px-3 py-2.5 text-paper hover:bg-surface-2">
+                {item.label}
+              </a>
+            ))
+          }
+          <a href="/contacto" class="btn btn-primary mt-2">Agendar diagnóstico</a>
+          <a href={SITE.calUrl} class="px-3 py-2 text-center text-sm text-muted hover:text-signal" target="_blank" rel="noopener">
+            Ver agenda en Cal.com
+          </a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
