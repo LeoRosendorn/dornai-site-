@@ -1,0 +1,112 @@
+---
+import { getCollection } from "astro:content";
+
+const services = (await getCollection("servicios")).sort((a, b) => a.data.order - b.data.order);
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+---
+
+<form id="contact-form" action="/api/contacto" method="post" class="space-y-5" novalidate>
+  <div class="grid gap-5 sm:grid-cols-2">
+    <label class="block space-y-1.5">
+      <span class="text-sm font-medium text-paper">Nombre y apellido</span>
+      <input name="nombre" required minlength="2" maxlength="120" autocomplete="name" class="field" />
+    </label>
+    <label class="block space-y-1.5">
+      <span class="text-sm font-medium text-paper">Email</span>
+      <input name="email" type="email" required maxlength="200" autocomplete="email" class="field" />
+    </label>
+  </div>
+  <div class="grid gap-5 sm:grid-cols-2">
+    <label class="block space-y-1.5">
+      <span class="text-sm font-medium text-paper">Empresa <span class="text-muted">(opcional)</span></span>
+      <input name="empresa" maxlength="120" autocomplete="organization" class="field" />
+    </label>
+    <label class="block space-y-1.5">
+      <span class="text-sm font-medium text-paper">Servicio de interés</span>
+      <select name="servicio" class="field">
+        <option value="">No estoy seguro / quiero un diagnóstico</option>
+        {services.map((s) => <option value={s.id}>{s.data.title}</option>)}
+      </select>
+    </label>
+  </div>
+  <label class="block space-y-1.5">
+    <span class="text-sm font-medium text-paper">¿Qué querés resolver?</span>
+    <textarea
+      name="mensaje"
+      required
+      minlength="10"
+      maxlength="2000"
+      rows="5"
+      class="field resize-y"
+      placeholder="Ej.: Recibimos 200 consultas por WhatsApp por día y respondemos tarde."></textarea>
+  </label>
+
+  <!-- Trampa para bots: las personas no ven este campo. -->
+  <div aria-hidden="true" class="absolute -left-[9999px]">
+    <label>No completar <input name="sitio_web" tabindex="-1" autocomplete="off" /></label>
+  </div>
+
+  {turnstileSiteKey && <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-language="es" />}
+
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+    <button type="submit" class="btn btn-primary disabled:opacity-60">Enviar consulta</button>
+    <p class="text-xs text-muted">
+      Usamos tus datos solo para responderte. <a href="/privacidad" class="underline hover:text-signal">Privacidad</a>
+    </p>
+  </div>
+  <p id="form-status" role="status" class="min-h-6 text-sm"></p>
+</form>
+
+{turnstileSiteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+
+<script>
+  const form = document.getElementById("contact-form") as HTMLFormElement;
+  const status = document.getElementById("form-status") as HTMLParagraphElement;
+  const button = form.querySelector("button[type=submit]") as HTMLButtonElement;
+
+  // /contacto?servicio=<slug> deja elegido ese servicio.
+  const preset = new URLSearchParams(location.search).get("servicio");
+  const select = form.elements.namedItem("servicio") as HTMLSelectElement;
+  if (preset && [...select.options].some((o) => o.value === preset)) select.value = preset;
+
+  const MESSAGES: Record<string, string> = {
+    INVALID_INPUT: "Revisá los datos: nombre, un email válido y un mensaje de al menos 10 caracteres.",
+    CAPTCHA: "No pudimos verificar que no sos un robot. Recargá la página y probá de nuevo.",
+    SEND_FAILED: "No pudimos enviar tu consulta. Probá de nuevo en unos minutos o agendá una llamada.",
+  };
+
+  function show(text: string, ok: boolean) {
+    status.textContent = text;
+    status.className = `min-h-6 text-sm ${ok ? "text-signal" : "text-danger"}`;
+  }
+
+  // Vuelta de un envío sin JavaScript que falló.
+  if (new URLSearchParams(location.search).get("error")) show(MESSAGES.SEND_FAILED, false);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    button.disabled = true;
+    show("Enviando…", true);
+
+    const data = Object.fromEntries(new FormData(form).entries());
+    const res = await fetch("/api/contacto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(data),
+    }).catch(() => null);
+    const body = (await res?.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+
+    button.disabled = false;
+    if (res?.ok && body?.ok) {
+      form.reset();
+      show("¡Listo! Recibimos tu consulta y te respondemos dentro de las 24 hs hábiles. Te mandamos una copia por email.", true);
+      return;
+    }
+    show(MESSAGES[body?.error ?? ""] ?? MESSAGES.SEND_FAILED, false);
+    (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
+  });
+</script>

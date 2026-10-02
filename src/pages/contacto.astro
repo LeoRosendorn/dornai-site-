@@ -1,0 +1,40 @@
+---
+import ContactForm from "../components/ContactForm.astro";
+import { SITE } from "../data/site";
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="Contacto"
+  description="Contanos qué querés resolver con IA. Te respondemos en 24 hs hábiles o agendá un diagnóstico gratuito de 30 minutos."
+>
+  <section class="grid-bg border-b border-line">
+    <div class="container-x space-y-4 py-16 sm:py-20">
+      <p class="eyebrow">Contacto</p>
+      <h1 class="max-w-3xl text-4xl font-bold sm:text-5xl">Contanos qué querés resolver</h1>
+      <p class="max-w-2xl text-lg text-ink">
+        Escribinos y te respondemos dentro de las 24 hs hábiles, o elegí un horario para el diagnóstico gratuito de 30 minutos.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-x grid gap-10 py-16 lg:grid-cols-2">
+    <div class="card p-6 sm:p-8">
+      <h2 class="mb-6 text-2xl font-bold">Escribinos</h2>
+      <ContactForm />
+    </div>
+
+    <div class="card flex flex-col p-6 sm:p-8">
+      <h2 class="mb-2 text-2xl font-bold">Agendá el diagnóstico</h2>
+      <p class="mb-6 text-ink">30 minutos por Google Meet · Horario de Argentina (UTC-3) · Sin costo.</p>
+      <iframe
+        src={`${SITE.calUrl}?embed=true&layout=month_view&theme=dark`}
+        title="Agenda de Dorn AI en Cal.com"
+        loading="lazy"
+        class="min-h-[620px] w-full flex-1 rounded-xl border border-line bg-bg"></iframe>
+      <a href={SITE.calUrl} target="_blank" rel="noopener" class="mt-4 text-sm text-muted underline hover:text-signal">
+        ¿No carga? Abrí la agenda en Cal.com
+      </a>
+    </div>
+  </section>
+</Base>

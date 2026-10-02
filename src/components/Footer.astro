@@ -1,0 +1,50 @@
+---
+import { getCollection } from "astro:content";
+import { SITE } from "../data/site";
+import Logo from "./Logo.astro";
+
+const services = (await getCollection("servicios")).sort((a, b) => a.data.order - b.data.order);
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-line bg-surface">
+  <div class="container-x grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
+    <div class="max-w-sm space-y-4">
+      <Logo />
+      <p class="text-sm leading-relaxed text-muted">
+        Agencia de IA para empresas de LATAM. Agentes, asistentes y automatizaciones a medida, con precio fijo y probados
+        antes de salir.
+      </p>
+      <p class="font-mono text-xs text-muted">{SITE.city}</p>
+    </div>
+
+    <nav aria-label="Servicios" class="space-y-3 text-sm">
+      <p class="eyebrow">Servicios</p>
+      <ul class="space-y-2">
+        {
+          services.map((s) => (
+            <li>
+              <a href={`/servicios/${s.id}/`} class="text-ink hover:text-signal">
+                {s.data.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav aria-label="Contacto" class="space-y-3 text-sm">
+      <p class="eyebrow">Contacto</p>
+      <ul class="space-y-2">
+        <li><a href="/contacto" class="text-ink hover:text-signal">Escribinos</a></li>
+        <li>
+          <a href={SITE.calUrl} target="_blank" rel="noopener" class="text-ink hover:text-signal">Agendar diagnóstico gratis</a>
+        </li>
+        <li><a href="/privacidad" class="text-ink hover:text-signal">Privacidad</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="border-t border-line">
+    <p class="container-x py-5 font-mono text-xs text-muted">© {year} Dorn AI · {SITE.founder}</p>
+  </div>
+</footer>

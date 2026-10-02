@@ -1,0 +1,149 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import CtaBand from "../../components/CtaBand.astro";
+import Faq from "../../components/Faq.astro";
+import ServiceIcon from "../../components/ServiceIcon.astro";
+import { SITE } from "../../data/site";
+import Base from "../../layouts/Base.astro";
+
+export async function getStaticPaths() {
+  const services = await getCollection("servicios");
+  return services.map((service) => ({ params: { slug: service.id }, props: { service } }));
+}
+
+interface Props {
+  service: CollectionEntry<"servicios">;
+}
+const { service } = Astro.props;
+const s = service.data;
+const others = (await getCollection("servicios"))
+  .filter((o) => o.id !== service.id)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: s.title,
+    description: s.short,
+    url: `${SITE.url}/servicios/${service.id}/`,
+    areaServed: "Latinoamérica",
+    provider: { "@type": "ProfessionalService", name: SITE.name, url: SITE.url },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: s.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  },
+];
+---
+
+<Base title={s.seoTitle} description={s.seoDescription} jsonLd={jsonLd}>
+  <section class="grid-bg border-b border-line">
+    <div class="container-x py-16 sm:py-24">
+      <nav aria-label="Ruta" class="mb-8 font-mono text-xs text-muted">
+        <a href="/" class="hover:text-signal">Inicio</a> <span aria-hidden="true">/</span>
+        <a href="/#servicios" class="hover:text-signal">Servicios</a>
+      </nav>
+      <div class="grid items-start gap-12 lg:grid-cols-[1.4fr_1fr]">
+        <div class="space-y-6">
+          <span class="flex size-14 items-center justify-center rounded-2xl bg-signal/10 text-signal">
+            <ServiceIcon name={s.icon} class="size-7" />
+          </span>
+          <h1 class="text-4xl leading-[1.08] font-bold sm:text-5xl">{s.title}</h1>
+          <p class="max-w-2xl text-lg leading-relaxed text-ink sm:text-xl">{s.short}</p>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <a href={SITE.calUrl} target="_blank" rel="noopener" class="btn btn-primary">Agendar diagnóstico gratis</a>
+            <a href={`/contacto?servicio=${service.id}`} class="btn btn-ghost">Pedir propuesta</a>
+          </div>
+        </div>
+        <aside class="card space-y-3 p-6">
+          <p class="eyebrow">El problema</p>
+          <p class="leading-relaxed text-paper">{s.problem}</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-x grid gap-12 py-20 lg:grid-cols-2">
+    <div data-reveal class="space-y-5">
+      <h2 class="text-2xl font-bold sm:text-3xl">Qué incluye</h2>
+      <ul class="space-y-3">
+        {
+          s.includes.map((item) => (
+            <li class="flex gap-3 leading-relaxed text-ink">
+              <span aria-hidden="true" class="mt-1 text-signal">◆</span>
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div data-reveal class="space-y-5">
+      <h2 class="text-2xl font-bold sm:text-3xl">Cómo funciona</h2>
+      <ol class="space-y-4">
+        {
+          s.steps.map((step, i) => (
+            <li class="card flex gap-4 p-5">
+              <span class="font-mono text-sm text-signal">0{i + 1}</span>
+              <div class="space-y-1">
+                <h3 class="font-semibold">{step.title}</h3>
+                <p class="leading-relaxed text-ink">{step.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="border-y border-line bg-surface">
+    <div class="container-x grid gap-10 py-20 md:grid-cols-3">
+      <div data-reveal class="space-y-4">
+        <h2 class="text-xl font-bold">Qué te llevás</h2>
+        <ul class="space-y-2.5">
+          {s.deliverables.map((d) => <li class="leading-relaxed text-ink">· {d}</li>)}
+        </ul>
+      </div>
+      <div data-reveal class="space-y-4">
+        <h2 class="text-xl font-bold">Ideal para</h2>
+        <ul class="space-y-2.5">
+          {s.ideal.map((d) => <li class="leading-relaxed text-ink">· {d}</li>)}
+        </ul>
+      </div>
+      <div data-reveal class="space-y-4">
+        <h2 class="text-xl font-bold">Plazos</h2>
+        <p class="leading-relaxed text-ink">{s.timeline}</p>
+        <h2 class="pt-2 text-xl font-bold">Se conecta con</h2>
+        <ul class="flex flex-wrap gap-2">
+          {s.integrations.map((i) => <li class="rounded-full border border-line-strong px-3 py-1 text-sm text-paper">{i}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-x py-20">
+    <div class="mx-auto max-w-3xl space-y-8">
+      <h2 data-reveal class="text-2xl font-bold sm:text-3xl">Preguntas frecuentes</h2>
+      <Faq items={s.faq} />
+    </div>
+  </section>
+
+  <CtaBand title="¿Lo vemos para tu empresa?" body="Agendá un diagnóstico gratuito de 30 minutos y te decimos si este servicio te conviene y cuánto costaría." />
+
+  <section class="container-x pb-24">
+    <h2 class="mb-6 text-xl font-bold">Otros servicios</h2>
+    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {
+        others.map((o) => (
+          <li>
+            <a href={`/servicios/${o.id}/`} class="card flex h-full items-center gap-3 p-4 text-sm text-paper hover:border-line-strong">
+              <ServiceIcon name={o.data.icon} class="size-5 shrink-0 text-signal" />
+              {o.data.title}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>
