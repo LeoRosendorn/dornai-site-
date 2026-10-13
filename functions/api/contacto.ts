@@ -7,7 +7,14 @@
  *   BREVO_API_KEY (secreto), CONTACT_TO, SENDER_EMAIL (remitente verificado en Brevo),
  *   TURNSTILE_SECRET_KEY (secreto, opcional pero recomendado).
  */
-import { confirmationEmailHtml, isHoneypotFilled, leadEmailHtml, parseContact } from "../../src/lib/contact";
+import {
+  confirmationEmailHtml,
+  filledTooFast,
+  isHoneypotFilled,
+  leadEmailHtml,
+  parseContact,
+  spamReason,
+} from "../../src/lib/contact";
 
 type Env = {
   BREVO_API_KEY?: string;
@@ -38,17 +45,32 @@ export async function onRequestPost({ request, env }: Context): Promise<Response
     return reply(400, { error: "INVALID_INPUT" });
   }
 
-  // Bot: se le responde "ok" para que no reintente, pero no se envía nada.
-  if (isHoneypotFilled(raw)) return reply(200, { ok: true });
+  // Bot: se le responde "ok" para que no reintente ni ajuste su script, pero no se envía nada.
+  const dropBot = (why: string) => {
+    console.warn("contacto: descartado como bot", why, request.headers.get("CF-Connecting-IP") ?? "");
+    return reply(200, { ok: true });
+  };
+
+  // Los navegadores siempre mandan Origin en un POST; los scripts que postean directo a la API, muchas veces no.
+  const origin = request.headers.get("Origin");
+  if (!sameOrigin(origin, request.url)) return dropBot("ORIGIN");
+
+  if (isHoneypotFilled(raw)) return dropBot("HONEYPOT");
+  if (filledTooFast(raw)) return dropBot("TOO_FAST");
 
   const contact = parseContact(raw);
   if (!contact) return reply(400, { error: "INVALID_INPUT" });
+
+  const spam = spamReason(contact);
+  if (spam) return dropBot(spam);
 
   if (env.TURNSTILE_SECRET_KEY) {
     const token = String(raw["cf-turnstile-response"] ?? "");
     if (!token || !(await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY, request))) {
       return reply(400, { error: "CAPTCHA" });
     }
+  } else {
+    console.warn("contacto: TURNSTILE_SECRET_KEY no está configurada; el formulario no tiene captcha");
   }
 
   // Solo nombres de variables faltantes, nunca valores: sirve para diagnosticar sin ver los logs.
@@ -98,6 +120,15 @@ async function sendEmail(apiKey: string, payload: Record<string, unknown>) {
   }
 }
 
+function sameOrigin(origin: string | null, requestUrl: string) {
+  if (!origin) return false;
+  try {
+    return new URL(origin).host === new URL(requestUrl).host;
+  } catch {
+    return false; // ej. "null" desde un iframe aislado
+  }
+}
+
 async function verifyTurnstile(token: string, secret: string, request: Request) {
   const body = new FormData();
   body.append("secret", secret);
@@ -106,8 +137,9 @@ async function verifyTurnstile(token: string, secret: string, request: Request) 
   if (ip) body.append("remoteip", ip);
   try {
     const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body });
-    const data = (await res.json()) as { success?: boolean };
-    return data.success === true;
+    const data = (await res.json()) as { success?: boolean; hostname?: string };
+    // Un token resuelto en otro sitio con la misma site key no sirve acá.
+    return data.success === true && (!data.hostname || data.hostname === new URL(request.url).hostname);
   } catch {
     return false;
   }

@@ -45,6 +45,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
   <div aria-hidden="true" class="absolute -left-[9999px]">
     <label>No completar <input name="sitio_web" tabindex="-1" autocomplete="off" /></label>
   </div>
+  <!-- Tiempo que tardó en completarse: los bots lo envían en menos de un segundo. -->
+  <input type="hidden" name="ts" value="" />
 
   {turnstileSiteKey && <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-language="es" />}
 
@@ -63,6 +65,9 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
   const form = document.getElementById("contact-form") as HTMLFormElement;
   const status = document.getElementById("form-status") as HTMLParagraphElement;
   const button = form.querySelector("button[type=submit]") as HTMLButtonElement;
+
+  // Milisegundos entre que se abrió la página y el envío (relativo: no depende del reloj del usuario).
+  const elapsed = form.elements.namedItem("ts") as HTMLInputElement;
 
   // /contacto?servicio=<slug> deja elegido ese servicio.
   const preset = new URLSearchParams(location.search).get("servicio");
@@ -92,6 +97,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
     button.disabled = true;
     show("Enviando…", true);
 
+    elapsed.value = String(Math.round(performance.now()));
     const data = Object.fromEntries(new FormData(form).entries());
     const res = await fetch("/api/contacto", {
       method: "POST",

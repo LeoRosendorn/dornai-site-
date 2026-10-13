@@ -24,5 +24,5 @@ npm run build       # genera dist/
   - `BREVO_API_KEY` (secreto): clave **API** de Brevo (SMTP & API → API Keys), no la clave SMTP.
   - `CONTACT_TO`: email que recibe las consultas.
   - `SENDER_EMAIL`: remitente verificado en Brevo.
-  - `TURNSTILE_SECRET_KEY` (secreto) y `PUBLIC_TURNSTILE_SITE_KEY`: Cloudflare Turnstile (anti-spam). Opcional: sin ellas el formulario usa solo el campo trampa.
+  - `TURNSTILE_SECRET_KEY` (secreto) y `PUBLIC_TURNSTILE_SITE_KEY`: Cloudflare Turnstile (anti-spam). **Muy recomendado**: sin ellas el formulario depende solo del campo trampa, el control de tiempo, el chequeo de Origin y el filtro de contenido (`spamReason`).
 - Para probar local con email real, crear `.dev.vars` (no se sube a git) con esas variables.
